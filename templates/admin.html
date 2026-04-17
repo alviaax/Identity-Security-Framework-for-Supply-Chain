@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Panel</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #0a0f14;
+  --panel: rgba(1, 3, 5, 0.9);
+  --border: rgba(0, 220, 168, 0.25);
+  --cyan: #00dca8;
+  --text: #c8d8e8;
+  --muted: #5a7a8a;
+  --mono: 'Share Tech Mono', monospace;
+  --sans: 'Rajdhani', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  font-family: var(--sans);
+  color: var(--text);
+  padding: 40px;
+}
+
+.container {
+  background: var(--panel);
+  padding: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  box-shadow: 0 0 30px rgba(0,0,0,0.6);
+}
+
+h2 {
+  color: var(--cyan);
+  margin-bottom: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+th {
+  color: var(--cyan);
+  font-family: var(--mono);
+}
+
+tr:hover {
+  background: rgba(0,220,168,0.05);
+}
+
+.btn-delete {
+  background: #ff4d6d;
+  border: none;
+  padding: 6px 12px;
+  color: white;
+  cursor: pointer;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-delete:hover {
+  background: #ff2c55;
+}
+
+.btn-back {
+    display: inline-block;
+    margin-top: 25px;
+    background: var(--cyan);
+    border: none;
+    padding: 10px 15px;
+    color: black;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-back:hover {
+  opacity: 0.8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Admin Panel - All Users</h2>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Action</th>
+        </tr>
+
+        {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.role }}</td>
+            <td>
+                <a href="/delete/{{ user.id }}" class="btn-delete">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <a href="/dashboard" class="btn-back">Back</a>
+</div>
+
+</body>
+</html>

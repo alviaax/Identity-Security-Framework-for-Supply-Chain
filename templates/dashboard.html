@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Identity Security Framework</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #050a0f;
+    --panel:    rgba(10, 20, 35, 0.85);
+    --border:   rgba(0, 220, 180, 0.2);
+    --cyan:     #00dca8;
+    --cyan-dim: rgba(0, 220, 168, 0.1);
+    --red:      #ff4d6d;
+    --amber:    #ffb347;
+    --blue:     #4db8ff;
+    --text:     #c8d8e8;
+    --muted:    #5a7a8a;
+    --mono:     'Share Tech Mono', monospace;
+    --sans:     'Rajdhani', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: var(--sans);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,220,168,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,220,168,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── Navbar ── */
+  .navbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 56px;
+    background: rgba(5,10,15,0.95);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    z-index: 1000;
+    animation: slideDown 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  @keyframes slideDown {
+    from { transform: translateY(-100%); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+
+  .nav-brand {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-brand .logo {
+    width: 28px; height: 28px;
+    border: 2px solid var(--cyan);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    background: var(--cyan-dim);
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .user-chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .user-chip .role-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    animation: blink 2s step-end infinite;
+  }
+
+  .logout-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--red);
+    background: rgba(255,77,109,0.1);
+    border: 1px solid rgba(255,77,109,0.3);
+    border-radius: 2px;
+    padding: 6px 14px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    text-transform: uppercase;
+  }
+  .logout-btn:hover { background: rgba(255,77,109,0.18); box-shadow: 0 0 12px rgba(255,77,109,0.2); }
+
+  /* ── Main layout ── */
+  .main {
+    position: relative; z-index: 1;
+    padding: 88px 28px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ── Welcome header ── */
+  .welcome-section {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 36px;
+    animation: fadeUp 0.6s 0.1s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .welcome-text .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .welcome-text h2 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+  }
+
+  .welcome-text h2 span { color: var(--cyan); }
+
+  .session-info {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.8;
+  }
+
+  /* ── Stats row ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+    animation: fadeUp 0.6s 0.2s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 22px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .stat-card:hover { border-color: rgba(0,220,168,0.4); transform: translateY(-2px); }
+
+  .stat-card::before {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent, var(--cyan)), transparent);
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent, var(--cyan));
+    line-height: 1;
+  }
+
+  .stat-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* ── Role panel ── */
+  .role-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+    animation: fadeUp 0.6s 0.3s cubic-bezier(0.16,1,0.3,1) both;
+    margin-bottom: 24px;
+  }
+
+  .role-panel-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .role-panel-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .role-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    border: 1px solid;
+    text-transform: uppercase;
+  }
+
+  .role-panel-body {
+    padding: 24px;
+  }
+
+  /* ── Permission grid ── */
+  .perm-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .perm-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: rgba(0,220,168,0.03);
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .perm-item:hover { border-color: rgba(0,220,168,0.3); background: var(--cyan-dim); }
+
+  .perm-icon {
+    font-size: 20px;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,220,168,0.07);
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .perm-text .perm-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+    letter-spacing: 0.5px;
+  }
+
+  .perm-text .perm-desc {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .perm-status {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--cyan);
+    background: var(--cyan-dim);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 3px 8px;
+    flex-shrink: 0;
+  }
+
+  /* ── Info section: Auth vs Authz ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    animation: fadeUp 0.6s 0.4s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  .info-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .info-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--accent-line, var(--cyan));
+  }
+
+  .info-card .card-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent-line, var(--cyan));
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .info-card h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .info-card p {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .info-card .keyword {
+    color: var(--accent-line, var(--cyan));
+    font-weight: bold;
+  }
+
+  /* Colours per role */
+  .role-admin    { --role-color: var(--blue);  }
+  .role-supplier { --role-color: var(--cyan);  }
+  .role-distrib  { --role-color: var(--amber); }
+
+  /* ── Status bar ── */
+  .statusbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 28px;
+    background: rgba(0,10,15,0.95);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    z-index: 1000;
+  }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    display: inline-block;
+    margin-right: 6px;
+    animation: blink 2s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="logo">🔒</div>
+    SUPPLY CHAIN SECURITY FRAMEWORK
+  </div>
+  <div class="nav-right">
+    <div class="user-chip">
+      <span class="role-dot" style="
+  background: {{ '#4db8ff' if user.role == 'admin' 
+                 else '#00dca8' if user.role == 'supplier' 
+                 else '#ffb347' }};
+"></span>
+      {{ user.username | upper }} &nbsp;·&nbsp; {{ user.role | upper }}
+    </div>
+    <a href="/logout" class="logout-btn">⏻ Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- Welcome -->
+  <div class="welcome-section">
+    <div class="welcome-text">
+      <p class="label">// AUTHENTICATED SESSION</p>
+      <h2>WELCOME, <span>{{ user.username | upper }}</span></h2>
+    </div>
+    <div class="session-info">
+      <div>ROLE &nbsp;→&nbsp; {{ user.role | upper }}</div>
+      <div>STATUS &nbsp;→&nbsp; <span style="color:var(--cyan)">ACTIVE</span></div>
+      <div id="session-time">TIME &nbsp;→&nbsp; --:--:--</div>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat-card" style="--accent: var(--cyan)">
+      <div class="stat-label">Session Status</div>
+      <div class="stat-value" style="font-size:20px; margin-top:4px;">✓ ACTIVE</div>
+      <div class="stat-sub">AUTHENTICATED VIA FLASK-LOGIN</div>
+    </div>
+    <div class="stat-card" style="--accent: var(--blue)">
+      <div class="stat-label">Identity</div>
+      <div class="stat-value" style="font-size:20px; margin-top:4px; color:var(--blue)">{{ user.username }}</div>
+      <div class="stat-sub">BCRYPT HASHED PASSWORD</div>
+    </div>
+    <div class="stat-card" style="--accent: var(--amber)">
+      <div class="stat-label">Access Level</div>
+      <div class="stat-value" style="font-size:20px; margin-top:4px; color:var(--amber)">{{ user.role | upper }}</div>
+      <div class="stat-sub">ROLE-BASED AUTHORIZATION</div>
+    </div>
+  </div>
+
+  <!-- Role-specific panel -->
+  {% if user.role == "admin" %}
+  <div class="role-panel">
+    <div class="role-panel-header">
+      <h3>🛡️ Admin Control Panel</h3>
+      <span class="role-badge" style="color:var(--blue); border-color:rgba(77,184,255,0.4); background:rgba(77,184,255,0.08)">FULL ACCESS</span>
+    </div>
+    <div class="role-panel-body">
+      <p style="font-family:var(--mono); font-size:12px; color:var(--muted); line-height:1.7;">
+        As an <span style="color:var(--blue)">Administrator</span>, you have full system oversight. 
+        You can manage all users, monitor supply chain activity, and configure security policies.
+      </p>
+      <a href="/admin" style="
+      display:inline-block;
+      margin-top:16px;
+      padding:10px 18px;
+      font-family:var(--mono);
+      font-size:11px;
+      letter-spacing:1px;
+      color:#4db8ff;
+      border:1px solid rgba(77,184,255,0.4);
+      background:rgba(77,184,255,0.08);
+      border-radius:3px;
+      text-decoration:none;
+      transition:0.2s;
+      ">
+      VIEW ALL USERS →
+    </a>
+      <div class="perm-grid">
+        <div class="perm-item">
+          <div class="perm-icon">👥</div>
+          <div class="perm-text">
+            <div class="perm-name">User Management</div>
+            <div class="perm-desc">CREATE / READ / UPDATE / DELETE</div>
+          </div>
+          <span class="perm-status" style="color:var(--blue); background:rgba(77,184,255,0.1); border-color:rgba(77,184,255,0.3)">GRANTED</span>
+        </div>
+        <div class="perm-item">
+          <div class="perm-icon">📊</div>
+          <div class="perm-text">
+            <div class="perm-name">System Monitoring</div>
+            <div class="perm-desc">VIEW ALL LOGS & ACTIVITY</div>
+          </div>
+          <span class="perm-status" style="color:var(--blue); background:rgba(77,184,255,0.1); border-color:rgba(77,184,255,0.3)">GRANTED</span>
+        </div>
+        <div class="perm-item">
+          <div class="perm-icon">⚙️</div>
+          <div class="perm-text">
+            <div class="perm-name">Security Config</div>
+            <div class="perm-desc">MODIFY SECURITY POLICIES</div>
+          </div>
+          <span class="perm-status" style="color:var(--blue); background:rgba(77,184,255,0.1); border-color:rgba(77,184,255,0.3)">GRANTED</span>
+        </div>
+        <div class="perm-item">
+          <div class="perm-icon">🔑</div>
+          <div class="perm-text">
+            <div class="perm-name">Role Assignment</div>
+            <div class="perm-desc">ASSIGN ROLES TO USERS</div>
+          </div>
+          <span class="perm-status" style="color:var(--blue); background:rgba(77,184,255,0.1); border-color:rgba(77,184,255,0.3)">GRANTED</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% elif user.role == "supplier" %}
+  <div class="role-panel">
+    <div class="role-panel-header">
+      <h3>📦 Supplier Operations Panel</h3>
+      <span class="role-badge" style="color:var(--cyan); border-color:var(--border); background:var(--cyan-dim)">LIMITED ACCESS</span>
+    </div>
+    <div class="role-panel-body">
+      <p style="font-family:var(--mono); font-size:12px; color:var(--muted); line-height:1.7;">
+        As a <span style="color:var(--cyan)">Supplier</span>, you can manage and upload supply chain inventory,
+        track raw material status, and communicate with distributors.
+      </p>
+      <div class="perm-grid">
+        <div class="perm-item">
+          <div class="perm-icon">📋</div>
+          <div class="perm-text">
+            <div class="perm-name">Inventory Management</div>
+            <div class="perm-desc">ADD & UPDATE STOCK ITEMS</div>
+          </div>
+          <span class="perm-status">GRANTED</span>
+        </div>
+        <div class="perm-item">
+          <div class="perm-icon">🚢</div>
+          <div class="perm-text">
+            <div class="perm-name">Shipment Tracking</div>
+            <div class="perm-desc">VIEW OUTBOUND SHIPMENTS</div>
+          </div>
+          <span class="perm-status">GRANTED</span>
+        </div>
+        <div class="perm-item">
+          <div class="perm-icon">👥</div>
+          <div class="perm-text">
+            <div class="perm-name">User Management</div>
+            <div class="perm-desc">ADMIN-ONLY OPERATION</div>
+          </div>
+          <span class="perm-status" style="color:var(--red); background:rgba(255,77,109,0.1); border-color:rgba(255,77,109,0.3)">DENIED</span>
+        </div>
+        <div class="perm-item">
+          <div class="perm-icon">💬</div>
+          <div class="perm-text">
+            <div class="perm-name">Distributor Comms</div>
+            <div class="perm-desc">SEND SUPPLY NOTIFICATIONS</div>
+          </div>
+          <span class="perm-status">GRANTED</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% elif user.role == "distributor" %}
+  <div class="role-panel">
+    <div class="role-panel-header">
+      <h3>🚚 Distributor Logistics Panel</h3>
+      <span class="role-badge" style="color:var(--amber); border-color:rgba(255,179,71,0.4); background:rgba(255,179,71,0.08)">LIMITED ACCESS</span>
+    </div>
+    <div class="role-panel-body">
+      <p style="font-family:var(--mono); font-size:12px; color:var(--muted); line-height:1.7;">
+        As a <span style="color:var(--amber)">Distributor</span>, you can track inbound goods,
+        manage delivery routes, and update delivery statuses across the supply chain.
+      </p>
+      <div class="perm-grid">
+        <div class="perm-item">
+          <div class="perm-icon">📍</div>
+          <div class="perm-text">
+            <div class="perm-name">Route Tracking</div>
+            <div class="perm-desc">VIEW & UPDATE DELIVERY ROUTES</div>
+          </div>
+          <span class="perm-status" style="color:var(--amber); background:rgba(255,179,71,0.1); border-color:rgba(255,179,71,0.3)">GRANTED</span>
+        </div>
+        <div class="perm-item">
+          <div class="perm-icon">📦</div>
+          <div class="perm-text">
+            <div class="perm-name">Product Distribution</div>
+            <div class="perm-desc">MANAGE INBOUND PRODUCTS</div>
+          </div>
+          <span class="perm-status" style="color:var(--amber); background:rgba(255,179,71,0.1); border-color:rgba(255,179,71,0.3)">GRANTED</span>
+        </div>
+        <div class="perm-item">
+          <div class="perm-icon">⚙️</div>
+          <div class="perm-text">
+            <div class="perm-name">Security Config</div>
+            <div class="perm-desc">ADMIN-ONLY OPERATION</div>
+          </div>
+          <span class="perm-status" style="color:var(--red); background:rgba(255,77,109,0.1); border-color:rgba(255,77,109,0.3)">DENIED</span>
+        </div>
+        <div class="perm-item">
+          <div class="perm-icon">📊</div>
+          <div class="perm-text">
+            <div class="perm-name">Delivery Reports</div>
+            <div class="perm-desc">GENERATE STATUS REPORTS</div>
+          </div>
+          <span class="perm-status" style="color:var(--amber); background:rgba(255,179,71,0.1); border-color:rgba(255,179,71,0.3)">GRANTED</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Auth vs Authz explanation cards -->
+  <div class="info-grid">
+    <div class="info-card" style="--accent-line: var(--cyan)">
+      <div class="card-tag">// Concept 01</div>
+      <h4>Authentication</h4>
+      <p>
+        <span class="keyword">WHO YOU ARE.</span><br><br>
+        This system verified your identity using your username + hashed password stored in SQLite.
+        Flask-Login manages your session cookie so you stay authenticated across requests.<br><br>
+        Password is stored as a <span class="keyword">Werkzeug PBKDF2 hash</span>, never in plaintext.
+      </p>
+    </div>
+    <div class="info-card" style="--accent-line: var(--amber)">
+      <div class="card-tag">// Concept 02</div>
+      <h4>Authorization</h4>
+      <p>
+        <span class="keyword">WHAT YOU CAN DO.</span><br><br>
+        Your role — <span class="keyword">{{ user.role | upper }}</span> — determines which resources and
+        actions you can access. Different roles see different panels and have different permissions.<br><br>
+        Enforced server-side via <span class="keyword">Jinja2 role checks</span> in templates.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<div class="statusbar">
+  <span><span class="dot"></span>SESSION ACTIVE — {{ user.username | upper }} AUTHENTICATED</span>
+  <span>SUPPLY CHAIN SEC FRAMEWORK</span>
+  <span id="clock"></span>
+</div>
+
+<script>
+  function updateClock() {
+    const t = new Date().toLocaleTimeString('en-GB', {hour12:false});
+    document.getElementById('clock').textContent = t;
+    document.getElementById('session-time').textContent = 'TIME → ' + t;
+  }
+  updateClock(); setInterval(updateClock, 1000);
+</script>
+</body>
+</html>
